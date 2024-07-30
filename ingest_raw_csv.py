@@ -46,12 +46,12 @@ def ingest():
         if 'csv' in link['href']]
         
     csv_count = 1
-    os.mkdir('data')
+    os.mkdir('raw_data')
     for link in csv_links:
             print(f'{csv_count} - Reading data from {link}')
             csv_count += 1
             response = get_request(link)
-            filepath = f'data/{link.split('/')[5] + '-' + link.split('/')[6][-2:] + '-' + link.split('/')[7]}.csv'
+            filepath = f'raw_data/{link.split('/')[5] + '-' + link.split('/')[6][-2:] + '-' + link.split('/')[7]}.csv'
             with open(filepath,'wb') as f:
                 f.write(response.content)
             
