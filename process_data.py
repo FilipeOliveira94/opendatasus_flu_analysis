@@ -69,10 +69,10 @@ def process(logger):
 
 def main():
     logger = logging.getLogger(__name__)
-    logging.basicConfig(filename='ingest.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    start_time = datetime.now()
+    logging.basicConfig(filename=f'process_{start_time.strftime("%Y-%m-%d_%H-%M-%S")}.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     
-    start_time = datetime.now()
     logger.info(f'Starting script: {start_time.strftime('%Y-%m-%d %H:%M:%S')}')
     process(logger)
     end_time = datetime.now()
