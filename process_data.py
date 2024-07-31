@@ -13,20 +13,6 @@ def process(logger):
         df = df.astype('str')
         filepath_parquet = 'processed_data/' + filepath.split('/')[-1].split('.')[0] + '.parquet'
         df.to_parquet(filepath_parquet, compression='gzip')
-        
-    def clean_bad_csv(filepath):
-        tempfile = open("temp.csv", 'w', encoding="utf-8")
-        with open(filepath, encoding="utf-8") as f:
-            for lines in f:
-                tempfile.write(re.sub('^".*?"; .*?"$', lambda x:x.group(0).replace('"; ','" '), lines))
-        tempfile.close()
-        
-        os.rename(filepath, filepath+'.bak')
-        os.rename("temp.csv", filepath)
-        
-        df = pd.read_csv(filepath, sep=';', header=0)
-        return df
-
     def log_error(filepath, type, exception, skipcount):
         skiplist.append({'file': filepath, 'error_type': type, 'error': str(exception)})	
         skipcount += 1
@@ -39,15 +25,7 @@ def process(logger):
         filepath = 'raw_data/' + file
         
         try:    
-            df = pd.read_csv(filepath, sep=';', header=0)
-        except pd.errors.ParserError:
-            logger.info(f'{i+1} - Error parsing file "{file}" - Attempting to clean data')
-            try:
-                df = clean_bad_csv(filepath)
-            except Exception as exception:
-                logger.error(f'{i+1} - SKIPPING - Error parsing: {file}')
-                skipcount = log_error(filepath, 'parse_clean', exception, skipcount)
-                continue
+            df = pd.read_csv(filepath, sep=';', header=0, quotechar='"', doublequote=True, escapechar='\\')
         except Exception as exception:
             logger.error(f'{i+1} - SKIPPING - Error parsing: {file}')
             skipcount = log_error(filepath, 'parse_general', exception, skipcount)
