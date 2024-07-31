@@ -1,6 +1,6 @@
 import pandas as pd
+import pyarrow.parquet as pq
 import os
-import re
 import json
 from datetime import datetime
 import logging
@@ -8,7 +8,7 @@ import sys
 import warnings
 warnings.simplefilter(action='ignore', category=pd.errors.DtypeWarning)
 
-def process(logger):
+def convert_parquet(logger):
     def save_parquet(df, filepath):
         df = df.astype('str')
         filepath_parquet = 'processed_data/' + filepath.split('/')[-1].split('.')[0] + '.parquet'
@@ -45,6 +45,15 @@ def process(logger):
     with(open('skiplist.json', 'w')) as f:
         json.dump(skiplist, f, indent=4)
 
+def merge_parquet(logger):        
+    files = ['processed_data/'+file for file in os.listdir('processed_data')]
+
+    schema = pq.ParquetFile(files[0]).schema_arrow
+    with pq.ParquetWriter("opendatasus_flu_syndrome.parquet", schema=schema) as writer:
+        for i, file in enumerate(files):
+            print(f'{i} - Writing file "{file}"')
+            writer.write_table(pq.read_table(file, schema=schema))
+
 def main():
     logger = logging.getLogger(__name__)
     start_time = datetime.now()
@@ -52,7 +61,8 @@ def main():
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     
     logger.info(f'Starting script: {start_time.strftime('%Y-%m-%d %H:%M:%S')}')
-    process(logger)
+    convert_parquet(logger)
+    merge_parquet(logger)
     end_time = datetime.now()
     logger.info(f'Ending script: {end_time.strftime('%Y-%m-%d %H:%M:%S')}')
     logger.info(f'Elapsed time (secs): {round((end_time - start_time).total_seconds(),3)}')
