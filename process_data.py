@@ -21,7 +21,7 @@ def process(logger):
                 tempfile.write(re.sub('^".*?"; .*?"$', lambda x:x.group(0).replace('"; ','" '), lines))
         tempfile.close()
         
-        os.remove(filepath)
+        os.rename(filepath, filepath+'.bak')
         os.rename("temp.csv", filepath)
         
         df = pd.read_csv(filepath, sep=';', header=0)
